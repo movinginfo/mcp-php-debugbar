@@ -2,74 +2,74 @@
 
 > **AI-powered PHP debugging via Model Context Protocol.**
 >
-> Підключає **PHP DebugBar** та **Laravel Debugbar** до AI-асистентів.
-> AI бачить винятки, SQL-запити, timeline, логи вашого додатку — читає вихідні PHP-файли і пропонує конкретні виправлення з точними рядками коду.
+> Connects **PHP DebugBar** and **Laravel Debugbar** to AI assistants.
+> The AI sees exceptions, SQL queries, timelines and logs from your running app — reads the actual PHP source files and suggests concrete fixes with exact line numbers.
 
 [![MCP](https://img.shields.io/badge/protocol-MCP-blue)](https://modelcontextprotocol.io)
 [![PHP DebugBar](https://img.shields.io/badge/PHP%20DebugBar-3.5.x-orange)](https://github.com/php-debugbar/php-debugbar)
 [![Laravel Debugbar](https://img.shields.io/badge/Laravel%20Debugbar-4.1.x-red)](https://github.com/fruitcake/laravel-debugbar)
 
-**Підтримувані клієнти:** Cursor &nbsp;·&nbsp; VS Code &nbsp;·&nbsp; Claude Desktop &nbsp;·&nbsp; OpenAI Codex  
-**Незабаром:** Antigravity
+**Supported clients:** Cursor &nbsp;·&nbsp; VS Code &nbsp;·&nbsp; Claude Desktop &nbsp;·&nbsp; OpenAI Codex  
+**Coming soon:** Antigravity
 
 ---
 
-## Як це працює
+## How it works
 
 ```
-Ваш PHP/Laravel додаток (localhost:8000)
+Your PHP/Laravel app (localhost:8000)
         │  phpdebugbar-id header
         ▼
   mcp-php-debugbar  (Node.js MCP Server, stdio)
-        │  37 інструментів
+        │  37 tools
         ▼
-  AI асистент (Cursor / VS Code / Claude / Codex)
-        │  читає PHP файли, аналізує, фіксить
+  AI assistant (Cursor / VS Code / Claude / Codex)
+        │  reads PHP files, analyzes issues, applies fixes
         ▼
-  Розробник отримує: файл:рядок + код + готовий фікс
+  Developer gets: file:line + code context + ready-to-apply fix
 ```
 
-Одна команда:
+One command:
 ```
 Debug /users page
 ```
-AI викликає `debugbar_auto_debug` → health score, кожна проблема з точним PHP файлом + рядком + кодом навколо + готовим виправленням.
+The AI calls `debugbar_auto_debug` → health score, every issue with the exact PHP file + line number + surrounding code + a concrete fix.
 
 ---
 
-## Вимоги
+## Requirements
 
 - **Node.js** 18+
-- **PHP** 7.4+ із запущеним dev-сервером
-- **PHP DebugBar** v3.5+ або **Laravel Debugbar** v4.1+
+- **PHP** 7.4+ with a running dev server
+- **PHP DebugBar** v3.5+ or **Laravel Debugbar** v4.1+
 
 ---
 
-## Крок 1 — Встановити PHP DebugBar у проект
+## Step 1 — Install PHP DebugBar in your project
 
-### Laravel проект
+### Laravel project
 
 ```bash
 composer require fruitcake/laravel-debugbar --dev
 ```
 
-У `.env` Laravel:
+In your Laravel `.env`:
 ```env
 APP_DEBUG=true
 DEBUGBAR_ENABLED=true
 ```
 
-У `config/debugbar.php`:
+In `config/debugbar.php`:
 ```php
 'storage' => [
     'enabled' => true,
-    'open'    => true,   // вмикає /_debugbar/open endpoint
+    'open'    => true,   // enables the /_debugbar/open endpoint
     'driver'  => 'file',
     'path'    => storage_path('debugbar'),
 ],
 ```
 
-### Vanilla PHP проект
+### Vanilla PHP project
 
 ```bash
 composer require php-debugbar/php-debugbar
@@ -81,26 +81,26 @@ use DebugBar\Storage\FileStorage;
 
 $debugbar = new DebugBar();
 $debugbar->setStorage(new FileStorage(__DIR__ . '/storage/debugbar'));
-$debugbar->sendDataInHeaders(); // відправляє phpdebugbar-id заголовок
+$debugbar->sendDataInHeaders(); // sends the phpdebugbar-id header
 ```
 
-Додати `/debugbar/open.php`:
+Add `/debugbar/open.php`:
 ```php
 <?php
 require __DIR__ . '/../vendor/autoload.php';
-// ... ініціалізація debugbar ...
+// ... initialize debugbar ...
 $handler = new DebugBar\OpenHandler($debugbar);
 $handler->handle();
 ```
 
-> **Авто-визначення:** якщо `PROJECT_ROOT` вказує на Laravel проект (є файл `artisan`) — сервер автоматично використовує `/_debugbar/open` і тип `laravel`. Для vanilla PHP — `/debugbar/open`.
+> **Auto-detection:** if `PROJECT_ROOT` points to a Laravel project (an `artisan` file is present), the server automatically uses `/_debugbar/open` and sets type to `laravel`. For vanilla PHP it uses `/debugbar/open`.
 
 ---
 
-## Крок 2 — Встановити mcp-php-debugbar
+## Step 2 — Install mcp-php-debugbar
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/mcp-php-debugbar.git
+git clone https://github.com/movinginfo/mcp-php-debugbar.git
 cd mcp-php-debugbar
 npm install
 npm run build
@@ -108,15 +108,15 @@ npm run build
 
 ---
 
-## Крок 3 — Підключити до AI клієнта
+## Step 3 — Connect to your AI client
 
 ---
 
 ### Cursor
 
-**Варіант A — для поточного проекту** (рекомендовано)
+**Option A — per project** (recommended)
 
-Створи або відредагуй файл `.cursor/mcp.json` у корені свого PHP проекту:
+Create or edit `.cursor/mcp.json` in the root of your PHP project:
 
 ```json
 {
@@ -134,9 +134,9 @@ npm run build
 }
 ```
 
-**Варіант B — глобально** (для всіх проектів)
+**Option B — global** (all projects)
 
-Файл: `~/.cursor/mcp.json`
+File: `~/.cursor/mcp.json`
 
 ```json
 {
@@ -154,16 +154,16 @@ npm run build
 }
 ```
 
-> У глобальному варіанті `PROJECT_ROOT` можна передавати через `debugbar_connect`:
+> In the global setup you can pass `PROJECT_ROOT` at connect time:
 > ```
 > Connect to http://localhost:8000, project root is /var/www/myapp
 > ```
 
-**Перевірити:**
+**Verify:**
 
-Перезапусти Cursor → `Settings → MCP` → має з'явитись `php-debugbar` зі статусом `connected`.
+Restart Cursor → `Settings → MCP` → `php-debugbar` should appear with status `connected`.
 
-**Windows приклад:**
+**Windows example:**
 ```json
 {
   "mcpServers": {
@@ -184,18 +184,19 @@ npm run build
 
 ### VS Code
 
-Потрібний VS Code 1.99+ з розширенням **GitHub Copilot Chat**.
+Requires VS Code **1.99+** with the **GitHub Copilot Chat** extension.
 
-**Крок 1.** Увімкни MCP підтримку у VS Code settings:
+**Step 1.** Enable MCP support in VS Code settings:
 
 ```json
 // .vscode/settings.json
 {
-  "chat.mcp.enabled": true
+  "chat.mcp.enabled": true,
+  "chat.agent.enabled": true
 }
 ```
 
-**Крок 2.** Створи `.vscode/mcp.json` у корені свого PHP проекту:
+**Step 2.** Create `.vscode/mcp.json` in the root of your PHP project:
 
 ```json
 {
@@ -214,7 +215,9 @@ npm run build
 }
 ```
 
-**Windows приклад:**
+If you cloned this repo and open it in VS Code, both `.vscode/mcp.json` and `.vscode/settings.json` are already included — `${workspaceFolder}` resolves automatically.
+
+**Windows example:**
 ```json
 {
   "servers": {
@@ -232,36 +235,46 @@ npm run build
 }
 ```
 
-**Крок 3.** Перезапусти VS Code → відкрий GitHub Copilot Chat → в меню вибери **Agent mode** → `php-debugbar` буде доступний.
+**Step 3.** Restart VS Code → open GitHub Copilot Chat → switch to **Agent mode** → `php-debugbar` will appear in the tools list.
 
-> **Примітка:** формат `.vscode/mcp.json` використовує ключ `"servers"` (не `"mcpServers"` як у Cursor).
+> **Note:** VS Code uses the key `"servers"` in `.vscode/mcp.json`, while Cursor and Claude use `"mcpServers"`.
+
+**Run the Example project from VS Code:**
+
+`Ctrl+Shift+P` → **Tasks: Run Task** → select:
+
+| Task | What it does |
+|---|---|
+| **Start PHP Example Server** | Runs `php -S localhost:8000` from the Example folder |
+| **Run MCP Smoke Test** | Runs the full test of all 37 tools |
+| **Run Direct DebugBar Test** | Direct test without MCP — outputs data with code and fixes |
+| **Build MCP Server** | Recompile TypeScript |
+
+Or press `F5` → select a debug configuration:
+- **Debug MCP Server** — launches the MCP server with the Node.js debugger
+- **Run Smoke Test**
+- **Run Direct DebugBar Test**
 
 ---
 
 ### Claude Desktop
 
-**macOS**
-
-Відкрий або створи:
+**macOS** — open or create:
 ```
 ~/Library/Application Support/Claude/claude_desktop_config.json
 ```
 
-**Windows**
-
-Відкрий або створи:
+**Windows** — open or create:
 ```
 %APPDATA%\Claude\claude_desktop_config.json
 ```
 
-**Linux**
-
-Відкрий або створи:
+**Linux** — open or create:
 ```
 ~/.config/Claude/claude_desktop_config.json
 ```
 
-**Вміст файлу:**
+**File contents:**
 
 ```json
 {
@@ -279,11 +292,11 @@ npm run build
 }
 ```
 
-Якщо `mcpServers` вже існує — просто додай блок `"php-debugbar"` всередину.
+If `mcpServers` already exists in your config, just add the `"php-debugbar"` block inside it.
 
-**Перезапусти Claude Desktop.** У лівому нижньому куті з'явиться іконка 🔌 з кількістю підключених MCP серверів.
+**Restart Claude Desktop.** A 🔌 icon will appear in the bottom-left corner showing the number of connected MCP servers.
 
-**Windows приклад:**
+**Windows example:**
 ```json
 {
   "mcpServers": {
@@ -304,12 +317,11 @@ npm run build
 
 ### Antigravity
 
-> 🚧 Повна інтеграція в розробці. Буде додано у наступному релізі.
+> 🚧 Full native integration is in development. Will be added in the next release.
 
-Наразі можна використовувати через стандартний stdio транспорт:
+In the meantime you can use it via the standard stdio transport:
 
 ```bash
-# Запустити сервер вручну і підключити через stdio
 DEBUGBAR_BASE_URL=http://localhost:8000 \
 PROJECT_ROOT=/path/to/your/php-project \
 node /path/to/mcp-php-debugbar/dist/index.js
@@ -317,49 +329,49 @@ node /path/to/mcp-php-debugbar/dist/index.js
 
 ---
 
-## Крок 4 — Запустити та підключити
+## Step 4 — Start your server and connect
 
 ### Laravel
 
 ```bash
-# 1. Запустити Laravel
+# 1. Start Laravel
 php artisan serve
 
-# 2. В AI чаті:
+# 2. In the AI chat:
 # "Connect debugbar to http://localhost:8000"
-# Сервер автоматично визначить тип laravel (через artisan файл)
-# і використає /_debugbar/open
+# The server auto-detects Laravel via the artisan file
+# and uses /_debugbar/open
 ```
 
 ### Vanilla PHP
 
 ```bash
-# 1. Запустити PHP сервер
+# 1. Start PHP dev server
 php -S localhost:8000 -t public
 
-# 2. В AI чаті:
+# 2. In the AI chat:
 # "Connect debugbar to http://localhost:8000"
 ```
 
 ---
 
-## Використання
+## Usage
 
-### Основний workflow
-
-```
-1. Запусти PHP/Laravel сервер
-2. В AI чаті напиши: "Connect debugbar to http://localhost:8000"
-3. Відкрий браузер, перейди на сторінку що потрібно дебагнути
-4. Напиши: "Debug the last request" або "Debug /users endpoint"
-```
-
-### Приклад розмови з AI
+### Basic workflow
 
 ```
-Ти:   Debug /users page
+1. Start your PHP/Laravel server
+2. In the AI chat: "Connect debugbar to http://localhost:8000"
+3. Open your browser and visit the page you want to debug
+4. Ask: "Debug the last request" or "Debug /users endpoint"
+```
 
-AI:   [викликає debugbar_auto_debug(url="/users")]
+### Example AI conversation
+
+```
+You:  Debug /users page
+
+AI:   [calls debugbar_auto_debug(url="/users")]
 
       🐛 DEBUG REPORT: GET /users
       Health score: 35/100 [████░░░░░░]
@@ -376,120 +388,152 @@ AI:   [викликає debugbar_auto_debug(url="/users")]
       💡 FIX:
          $users = User::with('posts')->get();
 
-Ти:   Apply this fix
+You:  Apply this fix
 
-AI:   [відкриває UserController.php, редагує рядок 34]
+AI:   [opens UserController.php, edits line 34]
       ✅ Fixed: replaced N+1 loop with eager loading
+```
+
+### Quick command reference
+
+```
+# Connect (run once at the start)
+Connect debugbar to http://localhost:8000
+
+# One-shot debug — the main tool
+Debug /page-name
+Debug the last request
+Debug /users and fix all issues
+
+# Specific problems
+Show all exceptions
+Show N+1 queries
+Fix issue #1
+Fix issue #2
+
+# Read source files
+Read file app/Http/Controllers/UserController.php line 45
+
+# Status
+Debugbar status
+List captured requests
+Performance summary
+
+# Laravel
+Show route info
+Full Laravel report
+Show auth info
+Show cache operations
 ```
 
 ---
 
-## Всі 37 MCP інструментів
+## All 37 MCP tools
 
-### Підключення
+### Connection
 
-| Інструмент | Що робить |
+| Tool | Description |
 |---|---|
-| `debugbar_connect` | Підключитись до PHP/Laravel сервера |
-| `debugbar_disconnect` | Відключитись |
-| `debugbar_status` | Статус підключення і кількість запитів |
-| `debugbar_chrome_tabs` | Список вкладок Chrome (CDP) |
-| `debugbar_start_chrome_monitor` | Авто-захоплення через Chrome DevTools |
+| `debugbar_connect` | Connect to a PHP/Laravel server |
+| `debugbar_disconnect` | Disconnect |
+| `debugbar_status` | Connection state and request count |
+| `debugbar_chrome_tabs` | List Chrome tabs (CDP) |
+| `debugbar_start_chrome_monitor` | Auto-capture via Chrome DevTools |
 
-### Запити
+### Requests
 
-| Інструмент | Що робить |
+| Tool | Description |
 |---|---|
-| `debugbar_list_requests` | Список всіх захоплених запитів |
-| `debugbar_get_request` | Деталі конкретного запиту |
-| `debugbar_fetch_url` | Зробити HTTP запит і захопити дані |
-| `debugbar_refresh_requests` | Оновити список з сервера |
-| `debugbar_clear` | Очистити кеш запитів |
+| `debugbar_list_requests` | List all captured requests |
+| `debugbar_get_request` | Full details for a specific request |
+| `debugbar_fetch_url` | Make an HTTP request and capture debug data |
+| `debugbar_refresh_requests` | Pull latest requests from the server |
+| `debugbar_clear` | Clear the request cache |
 
-### База даних
+### Database
 
-| Інструмент | Що робить |
+| Tool | Description |
 |---|---|
-| `debugbar_get_queries` | SQL запити з часом і біндингами |
-| `debugbar_get_duplicate_queries` | **N+1 детекція** — повторні запити |
-| `debugbar_compare_queries` | Порівняти кількість запитів між двома запитами |
+| `debugbar_get_queries` | SQL queries with duration and bindings |
+| `debugbar_get_duplicate_queries` | **N+1 detection** — repeated queries |
+| `debugbar_compare_queries` | Compare query counts between two requests |
 
-### Логи та винятки
+### Logs & Exceptions
 
-| Інструмент | Що робить |
+| Tool | Description |
 |---|---|
-| `debugbar_get_logs` | Логи з фільтрацією по рівню |
-| `debugbar_get_exceptions` | Винятки з повним стеком |
+| `debugbar_get_logs` | Log messages filtered by level |
+| `debugbar_get_exceptions` | Exceptions with full stack traces |
 
-### Продуктивність
+### Performance
 
-| Інструмент | Що робить |
+| Tool | Description |
 |---|---|
-| `debugbar_get_timeline` | Timeline вимірювань |
-| `debugbar_performance_summary` | Таблиця запитів за тривалістю/SQL |
+| `debugbar_get_timeline` | Timeline measurements |
+| `debugbar_performance_summary` | Request table sorted by duration / SQL count |
 
-### Laravel
+### Laravel-specific
 
-| Інструмент | Що робить |
+| Tool | Description |
 |---|---|
-| `debugbar_get_route` | Route, action, middleware |
-| `debugbar_get_views` | Blade шаблони |
-| `debugbar_get_events` | Events і listeners |
-| `debugbar_get_auth` | Auth guards і користувач |
-| `debugbar_get_models` | Eloquent моделі |
-| `debugbar_get_cache` | Cache hit/miss/write |
-| `debugbar_get_session` | Дані сесії |
-| `debugbar_laravel_report` | Повний Laravel звіт |
+| `debugbar_get_route` | Route URI, action, middleware |
+| `debugbar_get_views` | Blade templates rendered |
+| `debugbar_get_events` | Events fired and their listeners |
+| `debugbar_get_auth` | Auth guards and user info |
+| `debugbar_get_models` | Eloquent model instances |
+| `debugbar_get_cache` | Cache hit / miss / write / delete |
+| `debugbar_get_session` | Session data |
+| `debugbar_laravel_report` | Full combined Laravel report |
 
-### AI аналіз — головні інструменти
+### AI analysis — the key tools
 
-| Інструмент | Що робить |
+| Tool | Description |
 |---|---|
-| `debugbar_analyze` | Аналіз: N+1, повільні запити, винятки, пам'ять |
-| `debugbar_analyze_all` | Health report по всіх запитах |
-| `debugbar_suggest_fixes` | Список дій для виправлення |
-| **`debugbar_auto_debug`** | **One-shot:** URL → дані → читає файли → звіт з кодом і фіксами |
-| **`debugbar_fix_issue`** | Конкретна проблема: код + рядок + фікс |
-| **`debugbar_read_source`** | Читає будь-який PHP файл із `PROJECT_ROOT` |
+| `debugbar_analyze` | Analyze: N+1, slow queries, exceptions, memory |
+| `debugbar_analyze_all` | Health report across all captured requests |
+| `debugbar_suggest_fixes` | Prioritized fix list for the latest request |
+| **`debugbar_auto_debug`** | **One-shot:** fetch URL → load data → read source files → report with code and fixes |
+| **`debugbar_fix_issue`** | Focus on issue #N: source code + exact line + concrete fix |
+| **`debugbar_read_source`** | Read any PHP file from `PROJECT_ROOT` around a specific line |
 
-### Cursor / IDE
+### IDE integration
 
-| Інструмент | Що робить |
+| Tool | Description |
 |---|---|
-| `debugbar_open_preview` | Відкрити Cursor preview |
-| `debugbar_start_polling` | Polling нових запитів |
-| `debugbar_stop_polling` | Зупинити polling |
-| `debugbar_watch_and_debug` | Авто-аналіз нових запитів |
-| `debugbar_auto_analyze` | Аналізувати останні N запитів |
-| `debugbar_webhook_start` | Слухач webhook |
-| `debugbar_preview_modes` | Режими preview |
+| `debugbar_open_preview` | Open Cursor built-in preview |
+| `debugbar_start_polling` | Poll for new requests periodically |
+| `debugbar_stop_polling` | Stop polling |
+| `debugbar_watch_and_debug` | Auto-analyze new requests as they arrive |
+| `debugbar_auto_analyze` | Analyze the last N requests |
+| `debugbar_webhook_start` | Start a webhook listener |
+| `debugbar_preview_modes` | Show available preview connection modes |
 
 ---
 
-## Налаштування через .env
+## Environment variables (.env)
 
 ```env
-# URL PHP/Laravel dev сервера (обов'язково)
+# PHP/Laravel dev server URL (required)
 DEBUGBAR_BASE_URL=http://localhost:8000
 
-# Шлях до open handler
+# Open handler path
 # Laravel:      /_debugbar/open
 # Vanilla PHP:  /debugbar/open
 DEBUGBAR_OPEN_HANDLER=/_debugbar/open
 
-# Тип проекту: laravel | php | auto (auto = перевіряє artisan файл)
+# Project type: laravel | php | auto  (auto checks for artisan file)
 DEBUGBAR_TYPE=auto
 
-# Абсолютний шлях до PHP проекту (для читання файлів і авто-фіксів)
-# Laravel: /var/www/myapp  або  C:/projects/myapp
+# Absolute path to your PHP project (enables source file reading and AI fixes)
+# Examples: /var/www/myapp   C:/projects/myapp   /home/user/laravel-app
 PROJECT_ROOT=
 
-# Chrome remote debugging (опціонально)
+# Chrome remote debugging (optional — enables auto-capture on page visit)
 CHROME_HOST=localhost
 CHROME_PORT=9222
 CHROME_AUTO_CONNECT=false
 
-# Інше
+# Other
 MAX_REQUESTS=100
 REQUEST_TIMEOUT=10000
 LOG_LEVEL=info
@@ -497,40 +541,41 @@ LOG_LEVEL=info
 
 ---
 
-## Тестовий проект
+## Example project
 
-У папці `Example/` є готовий PHP DebugBar demo:
-- Головна сторінка з **N+1 проблемою** і перехопленим винятком
-- `/users.php` — стандартні SQL запити
-- `/error.php` — 4 різних типи винятків
-- `/slow.php` — симульована повільна сторінка (~850ms timeline)
+The `Example/` folder contains a ready-to-use PHP DebugBar demo:
+
+- Home page with an **intentional N+1 problem** and a caught exception
+- `/users.php` — standard SQL queries
+- `/error.php` — 4 different exception types
+- `/slow.php` — simulated slow page (~850 ms timeline)
 - `/api.php` — JSON API endpoint
 
 ```bash
-# Запустити example
+# Start the example server
 php -S localhost:8000 -t Example/public Example/public/router.php
 
-# Прямий тест (без MCP)
+# Direct test (no MCP needed)
 node test/direct-debugbar.mjs
 
-# Повний MCP smoke test
+# Full MCP smoke test (all 37 tools)
 node test/smoke-test.mjs
 ```
 
 ---
 
-## Розробка
+## Development
 
 ```bash
-npm run dev      # запуск без збірки (tsx)
+npm run dev      # run without building (tsx)
 npm run build    # TypeScript → dist/
 npm run watch    # watch mode
-npm run inspect  # MCP Inspector UI у браузері
+npm run inspect  # MCP Inspector UI in the browser
 ```
 
 ---
 
-## Вивантаження на GitHub
+## Publish to GitHub
 
 ```bash
 cd mcp-php-debugbar
@@ -541,13 +586,13 @@ git commit -m "feat: initial release"
 # GitHub CLI:
 gh repo create mcp-php-debugbar --public --push
 
-# або вручну:
+# or manually:
 git remote add origin https://github.com/YOUR_USERNAME/mcp-php-debugbar.git
 git branch -M main
 git push -u origin main
 ```
 
-> `.env` захищений в `.gitignore` — локальні шляхи не потраплять в репозиторій.
+> `.env` is in `.gitignore` — your local paths and secrets will not be committed.
 
 ---
 
@@ -555,20 +600,20 @@ git push -u origin main
 
 - [x] PHP DebugBar v3.5
 - [x] Laravel Debugbar v4.1
-- [x] Авто-визначення Laravel через `artisan`
-- [x] `PROJECT_ROOT` — читання вихідних файлів
-- [x] `debugbar_auto_debug` — one-shot дебаг з кодом
-- [x] `debugbar_fix_issue` — код + фікс на конкретну проблему
-- [x] N+1 детекція, повільні запити, аналіз винятків
-- [x] **Cursor** підтримка
-- [x] **Claude Desktop** підтримка
-- [x] **OpenAI Codex** підтримка
-- [ ] **VS Code** — стабільна підтримка (GitHub Copilot MCP)
-- [ ] **Antigravity** — нативна інтеграція
+- [x] Auto-detection of Laravel via `artisan` file
+- [x] `PROJECT_ROOT` — source file reading
+- [x] `debugbar_auto_debug` — one-shot debug with code context
+- [x] `debugbar_fix_issue` — code + fix for a specific issue
+- [x] N+1 detection, slow query analysis, exception analysis
+- [x] **Cursor** support
+- [x] **Claude Desktop** support
+- [x] **OpenAI Codex** support
+- [ ] **VS Code** — stable support (GitHub Copilot MCP)
+- [ ] **Antigravity** — native integration
 - [ ] `npm publish` — `npx mcp-php-debugbar`
-- [ ] Авто-застосування фіксів (запис у файл)
-- [ ] EXPLAIN аналіз (відсутні індекси)
-- [ ] Xdebug інтеграція
+- [ ] Auto-apply fixes (write to file)
+- [ ] EXPLAIN analysis (missing index detection)
+- [ ] Xdebug integration
 
 ---
 
