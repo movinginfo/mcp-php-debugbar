@@ -1,0 +1,15 @@
+{
+  "_comment": "For OpenAI Codex / Codex CLI — add to your codex MCP server config",
+  "mcpServers": {
+    "php-debugbar": {
+      "command": "node",
+      "args": ["e:/php/claude-project/mcp-php-debugbar/dist/index.js"],
+      "env": {
+        "DEBUGBAR_BASE_URL": "http://localhost:8000",
+        "DEBUGBAR_TYPE": "auto",
+        "CHROME_PORT": "9222",
+        "LOG_LEVEL": "warn"
+      }
+    }
+  }
+}

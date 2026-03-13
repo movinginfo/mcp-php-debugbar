@@ -1,0 +1,18 @@
+{
+  "_comment": "Development mode — uses tsx (no build step). Copy to ~/.cursor/mcp.json or project .cursor/mcp.json",
+  "mcpServers": {
+    "php-debugbar": {
+      "command": "npx",
+      "args": ["tsx", "e:/php/claude-project/mcp-php-debugbar/src/index.ts"],
+      "env": {
+        "DEBUGBAR_BASE_URL": "http://localhost:8000",
+        "DEBUGBAR_OPEN_HANDLER": "/debugbar/open",
+        "DEBUGBAR_TYPE": "php",
+        "CHROME_PORT": "9222",
+        "CHROME_AUTO_CONNECT": "false",
+        "PROJECT_ROOT": "e:/php/claude-project/mcp-php-debugbar/Example",
+        "LOG_LEVEL": "debug"
+      }
+    }
+  }
+}
