@@ -588,8 +588,3 @@ git push -u origin main
 ## License
 
 MIT
-
-```
-
-I can also turn this into a more polished GitHub-native README style with tighter wording, better section names, and more marketing-friendly phrasing.
-```
